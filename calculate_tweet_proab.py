@@ -52,5 +52,20 @@ for line in fp.readlines():
             lineSet.append(key)   
     textSet.append(lineSet)
     num += 1
-print num
-print textSet
+# 比较人为标记的结果和计算出来的结果
+fp_res = open("./training _data_res.txt")
+contents = fp_res.readlines()
+listIndex = 0
+equalNum = 0
+for line in contents:
+    line = line.strip("\n")
+    line = line.split(",")
+    line = sorted(line)
+    print sorted(textSet[listIndex]), line
+    ## 两个列表相等
+    if cmp(sorted(textSet[listIndex]),line) == 0:
+        print "resource equal calculate"
+        equalNum = equalNum + 1
+    listIndex = listIndex + 1
+print equalNum
+print listIndex
