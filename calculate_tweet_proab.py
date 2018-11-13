@@ -6,7 +6,7 @@ import os
 # 类别数
 classNum = 6
 # 平滑参数
-smoothPara = 1
+smoothPara = 0.8
 prioProb = {"happiness":0.15696837064886, "like":0.4610104184202159, "anger":0.0084357406056525, "sadness":0.0846192694012682, "fear":0.0320782597310289, "disgust":0.2435329106110768, "surprise":0.0133550305818978}
 emotionList = ["happiness","like","anger","sadness","fear","disgust","surprise"]
 # 打开统计的json文件
@@ -48,24 +48,83 @@ for line in fp.readlines():
     maxValue = eValue[max(eValue,key=eValue.get)]
     lineSet = []
     for key in eValue:
-        if 5*eValue[key] > maxValue:
+        if 2*eValue[key] > maxValue:
             lineSet.append(key)   
     textSet.append(lineSet)
     num += 1
+## 保存计算的结果
+for one in textSet:
+    ## 词典标记且去重的结果
+    os.system("echo %s >> calculate_emotion_set.txt"%(','.join(one))) 
 # 比较人为标记的结果和计算出来的结果
-fp_res = open("./training _data_res.txt")
-contents = fp_res.readlines()
+## 人为标记的结果
+fpRes = open("./training_data_res.txt")
+resContents = fpRes.readlines()
+listIndex = 0
+## 统计本来没有情绪标记为有情绪,或者有情绪没标记出来的个数
+mistaken = 0
+## 两者有交集的个数(包含相等)
+containNum = 0
+## 都不为空且无交集的个数
+notEqualNum = 0
+for line in resContents:
+    line = line.strip("\n")
+    line = line.strip()
+    if not line:
+        line = []
+    else:
+        line = line.split(",")
+    ## 两个列表相等
+    ## if cmp(sorted(textSet[listIndex]),line) == 0:
+    ## 都为空: 
+    if ((not line) and (not textSet[listIndex])):
+        containNum = containNum + 1
+    ## 误标记: 本来为空,却被标记; 或者本来有标签,却没被标记出来
+    if ((not line) and (textSet[listIndex])) or (line and (not textSet[listIndex])):
+        mistaken = mistaken + 1 
+    ## 两个列表包含
+    if list(set(line).intersection(set(textSet[listIndex]))):
+        containNum = containNum + 1
+    ## 没有交集
+    if ( (line) and (textSet[listIndex])) and not ( list(set(line).intersection(set(textSet[listIndex]))) ):
+        notEqualNum = notEqualNum + 1
+    listIndex = listIndex + 1
+print "listIndex:", listIndex
+print "mistaken:", mistaken
+print "containNum:", containNum
+print "notEqualNum:", notEqualNum
+
+
+# 比较人为标记和词典标记的结果
+## 词典标记的结果,去重
+fpDict = open("./training_data_six_only_emotion.txt")
+dictContents =  fpDict.readlines()
 listIndex = 0
 equalNum = 0
-for line in contents:
+# 将人为标记结果存到列表中
+manList = []
+for one in resContents:
+    one = one.strip("\n")
+    one = one.split(",")
+    one = sorted(one)
+    manList.append(one)
+# 遍历词典标记的结果,开始比较
+dictList = []
+for line in dictContents:
     line = line.strip("\n")
-    line = line.split(",")
+    line = line.split(",") 
     line = sorted(line)
-    print sorted(textSet[listIndex]), line
-    ## 两个列表相等
-    if cmp(sorted(textSet[listIndex]),line) == 0:
-        print "resource equal calculate"
+    dictList.append(list(set(line)))
+    if line: 
+        line = list(set(line))
+    ## 词典标记的序列是否包含人为标记的序列
+    if set(line).issubset(set(manList[listIndex])):
         equalNum = equalNum + 1
-    listIndex = listIndex + 1
-print equalNum
-print listIndex
+    listIndex = listIndex + 1 
+for one in dictList:
+    ## 词典标记且去重的结果
+    os.system("echo %s >> six_emotion_set.txt"%(','.join(one)))
+print "man-made sign compares to dict:", equalNum
+print "listIndex:", listIndex
+fpDict.close()
+fpRes.close()
