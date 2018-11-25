@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 import json
 import os
-prioProb = {"happiness":0.15696837064886, "like":0.4610104184202159, "anger":0.0084357406056525, "sadness":0.0846192694012682, "fear":0.0320782597310289, "disgust":0.2435329106110768, "surprise":0.0133550305818978}
 emotionList = ["happiness","like","anger","sadness","fear","disgust","surprise"]
 # 统计数据集中每个词出现在每个情绪中的概率
 ## 先统计情绪词语集合,即
@@ -11,13 +10,34 @@ emotionList = ["happiness","like","anger","sadness","fear","disgust","surprise"]
 ##  ......
 ##  "emotionn":[{"word1":1,"word2":4,...,"wordn":x}]
 ## }
+# 内容合并成一行输出到tmp.txt文件中
+fpData = open("./training_data_dict_extracted.txt")
+dataList = []
+dataStr = ""
+for line in fpData.readlines():
+    line = line.strip()
+    if line:
+        line = line.split("\n")
+        for one in line:
+            one = one.split(",")
+            for i in one:
+               dataList.append(i)
+    dataStr = " ".join(dataList)
+# print dataStr.decode("utf-8")
+print dataStr
+fpTmp = open("./tmp.txt", 'w')
+fpTmp.write(dataStr)
+fpTmp.close()
+
+fpData.close()
+# 统计词频
 frequencyData = {}
 with open("./tmp.txt") as fp:
     contents = fp.read()
-contentsList = contents.split(",") 
+contentsList = contents.split(" ") 
+# print contentsList
 ## 找出相同情绪的词语
 for emotion in emotionList:
-    print emotion
     ###  保存单一情绪词集用,不统计个数
     tempList = []
     for wordEmotion in contentsList:
